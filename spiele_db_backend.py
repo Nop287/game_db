@@ -1,41 +1,33 @@
+# We use flask as our backend for implementing a REST service
 import flask
 from flask import request, jsonify
+# We use a TinyDB as a database for our games
+from tinydb import TinyDB, Query
 
+# We create a flask app in debug mode for now
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
 
+# We open the TinyDB. Note that the file ist not yet in the github repository.
+# There is a Jupyter notebook which builds the database.
+game_db = TinyDB('spiele_tinydb.json')
+
 # Create some test data for our catalog in the form of a list of dictionaries.
-books = [
-    {'id': 0,
-     'title': 'A Fire Upon the Deep',
-     'author': 'Vernor Vinge',
-     'first_sentence': 'The coldsleep itself was dreamless.',
-     'year_published': '1992'},
-    {'id': 1,
-     'title': 'The Ones Who Walk Away From Omelas',
-     'author': 'Ursula K. Le Guin',
-     'first_sentence': 'With a clamor of bells that set the swallows soaring, the Festival of Summer came to the city Omelas, bright-towered by the sea.',
-     'published': '1973'},
-    {'id': 2,
-     'title': 'Dhalgren',
-     'author': 'Samuel R. Delany',
-     'first_sentence': 'to wound the autumnal city.',
-     'published': '1975'}
-]
+games = game_db.all()[0:4]
 
 
 @app.route('/', methods=['GET'])
 def home():
-    return '''<h1>Distant Reading Archive</h1>
-<p>A prototype API for distant reading of science fiction novels.</p>'''
+    return '''<h1>May Game DB</h1>
+<p>A prototype API for querying my collection of computer games.</p>'''
 
 
-@app.route('/api/v1/resources/books/all', methods=['GET'])
+@app.route('/api/v1/resources/games/all', methods=['GET'])
 def api_all():
-    return jsonify(books)
+    return jsonify(games)
 
 
-@app.route('/api/v1/resources/books', methods=['GET'])
+@app.route('/api/v1/resources/games', methods=['GET'])
 def api_id():
     # Check if an ID was provided as part of the URL.
     # If ID is provided, assign it to a variable.
@@ -50,12 +42,12 @@ def api_id():
 
     # Loop through the data and match results that fit the requested ID.
     # IDs are unique, but other fields might return many results
-    for book in books:
-        if book['id'] == id:
-            results.append(book)
+    for game in games:
+        if int(game['web-scraper-order']) == id:
+            results.append(game)
 
     # Use the jsonify function from Flask to convert our list of
     # Python dictionaries to the JSON format.
     return jsonify(results)
-
+ 
 app.run()
