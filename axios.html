@@ -7,10 +7,19 @@
 </head>
 <body>
 
-<h1>Application 1</h1>
+<!-- 
+This is a first prototype version of a frontend for our game database. It uses vue.js 
+for the dynamic content and Axios to retrieve it from a backend. Ir is based on an
+example from the vue.js documentation on using Axios to consume REST APIs.
+
+https://vuejs.org/v2/cookbook/using-axios-to-consume-apis.html
+
+-->
+
+<h1>First Prototype of Game DB</h1>
 
 <div id="app">
-  <h1>Bitcoin Price Index</h1>
+  <h1>Game List</h1>
 
   <section v-if="errored">
     <p>We're sorry, we're not able to retrieve this information at the moment, please try back later</p>
@@ -21,12 +30,12 @@
 
     <div
       v-else
-      v-for="currency in info"
-      class="currency"
+      v-for="game in info"
+      class="game"
     >
-      {{ currency.description }}:
+      {{ game.game_igdb_name }}:
       <span class="lighten">
-        <span v-html="currency.symbol"></span>{{ currency.rate_float | currencydecimal }}
+        {{ game.game_rating | ratingdecimal }}
       </span>
     </div>
 
@@ -44,15 +53,20 @@ new Vue({
     }
   },
   filters: {
-    currencydecimal (value) {
+    // This filter will be used to reduce the game rating to two decimals
+    ratingdecimal (value) {
       return value.toFixed(2)
     }
   },
   mounted () {
+    // This is the core of the code where we request data from our APIs
+	// For the time being this is a Python Flask server started from the command line
     axios
-      .get('https://api.coindesk.com/v1/bpi/currentprice.json')
+      .get('http://127.0.0.1:5000/api/v1/resources/games/all')
       .then(response => {
-        this.info = response.data.bpi
+        this.info = response.data
+		// This is for debugging only to see the response on the Java script console
+		console.log(response)
       })
       .catch(error => {
         console.log(error)
