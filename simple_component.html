@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Playing with Components</title>
+  <script src="https://unpkg.com/vue"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+
+<h1>Sharing Data Between Components</h1>
+
+<!-- 
+In this file we define two componets, one for input and one for output.
+We also have a vue.js app. The goal is to share one variabe between all 
+three elements. It has to be reative, so that we can change it using our
+input component.
+
+This will be extended for the output to deliver a result list from a REST
+call dynamically given the input parameters. 
+-->
+
+<div id="app">
+  <!-- ratingApp is the variable to share. -->
+  <!-- This just displays the variable, but is already reactive. -->
+  <p>This is the rating on the App level: {{ ratingApp }}</p>
+  <!-- This component will be extended to display results of a REST call. -->
+  <!-- In v-bind we have to use kabab case as HTML attributes are case-insensitive. vue.js gives a warning. -->
+  <rating-output v-bind:rating-comp2="ratingApp"></rating-output>	
+  <!-- This is the input component. We will need two for minimum and maximum rating. -->
+  <rating-input v-model="ratingApp" v-on:input="ratingApp = $event" type="number"></rating-input>
+</div>
+
+<script>
+
+/*
+This is the input component. To use it together with v-model the variable has to be named "value".
+This is explained very well here: https://vuejs.org/v2/guide/components.html#Using-v-model-on-Components
+It will emit an event called "input" with the value entered. 
+*/
+Vue.component('rating-input', {
+  props: ["value"],
+  template: `
+    <input
+      v-bind:value="value"
+      v-on:input="$emit('input', $event.target.value)"
+    >
+  `
+})
+
+/*
+This is a very simple output component. Later it will be more elaborate. 
+For now we just want to check the correct bindings.
+*/
+Vue.component('rating-output', {
+  props: ["ratingComp2"],
+  template: `
+    <p>Minimal Rating: {{ ratingComp2 }}</p>
+  `
+})
+
+/*
+This is the vue app. The only relevant thing is that we define the global variable ratingApp
+for everything to be reactive. The components will bind to this variable.
+*/
+var app = new Vue({
+  el: '#app',
+  data: {
+    ratingApp: 42
+  }
+})
+
+</script>
