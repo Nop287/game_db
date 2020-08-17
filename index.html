@@ -1,153 +1,84 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My first Vue app</title>
+  <title>Starting the Game Database</title>
   <script src="https://unpkg.com/vue"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.3.3/dist/semantic.min.css">
+  <style>
+    h1.ui.center.header {
+      margin-top: 3em;
+    }
+	</style>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
 <body>
 
-<h1>Application 1</h1>
+<h1>Selecting Games by Rating</h1>
 
-  <div id="app">
-    {{ message }}
+<main id="gamedb">
+
+  <div v-if="errored">
+    <p>We're sorry, we're not able to retrieve this information at the moment, please try back later</p>
   </div>
-
-  <script>
-    var app = new Vue({
-      el: '#app',
-      data: {
-        message: 'Hello Vue!'
-      }
-    })
-  </script>
- 
-<h1>Application 2</h1>
- 
-  <div id="app-2">
-    <span v-bind:title="message">
-      Hover your mouse over me for a few seconds
-      to see my dynamically bound title!
-    </span>
+  <div v-else>
+    <div v-if="loading">Loading...</div>
+    <div v-else>
+	<table>
+	<thead>
+	  <tr>
+	    <th>Name</th>
+	    <th>Rating</th>	
+	  </tr>
+	</thead>
+    <tbody>
+      <tr v-for="(game, index) in games" :key="index">
+        <td>{{ game.game_igdb_name }}</td>
+        <td>{{ game.game_rating | ratingdecimal }}</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <th colspan="2"></th>
+      </tr>
+	</tfoot>
+	</table>
+    </div>
   </div>
- 
-  <script>
-    var app2 = new Vue({
-	  el: '#app-2',
-	  data: {
-	    message: 'You loaded this page on ' + new Date().toLocaleString()
-      }
-})
-</script>
-
-<h1>Application 3</h1>
-
-<div id="app-3">
-  <span v-if="seen">Now you see me</span>
-</div>
+</main>
 
 <script>
-var app3 = new Vue({
-  el: '#app-3',
-  data: {
-    seen: true
-  }
-})
-</script>
-
-<h1>Application 4</h1>
-
-<div id="app-4">
-  <ol>
-    <li v-for="todo in todos">
-      {{ todo.text }}
-    </li>
-  </ol>
-</div>
-
-<script>
-var app4 = new Vue({
-  el: '#app-4',
-  data: {
-    todos: [
-      { text: 'Learn JavaScript' },
-      { text: 'Learn Vue' },
-      { text: 'Build something awesome' }
-    ]
-  }
-})
-</script>
-
-<h1>Application 5</h1>
-
-<div id="app-5">
-  <p>{{ message }}</p>
-  <button v-on:click="reverseMessage">Reverse Message</button>
-</div>
-
-<script>
-var app5 = new Vue({
-  el: '#app-5',
-  data: {
-    message: 'Hello Vue.js!'
-  },
-  methods: {
-    reverseMessage: function () {
-      this.message = this.message.split('').reverse().join('')
+new Vue({
+  el: "#gamedb",
+  data() {
+    return {
+      games: null,
+      loading: true,
+      errored: false
     }
-  }
-})
-</script>
-
-<h1>Application 6</h1>
-
-<div id="app-6">
-  <p>{{ message }}</p>
-  <input v-model="message">
-</div>
-
-<script>
-var app6 = new Vue({
-  el: '#app-6',
-  data: {
-    message: 'Hello Vue!'
-  }
-})
-</script>
-
-<h1>Application 7</h1>
-
-<div id="app-7">
-  <ol>
-    <!--
-      Now we provide each todo-item with the todo object
-      it's representing, so that its content can be dynamic.
-      We also need to provide each component with a "key",
-      which will be explained later.
-    -->
-    <todo-item
-      v-for="item in groceryList"
-      v-bind:todo="item"
-      v-bind:key="item.id"
-    ></todo-item>
-  </ol>
-</div>
-
-<script>
-Vue.component('todo-item', {
-  props: ['todo'],
-  template: '<li>{{ todo.text }}</li>'
-})
-
-var app7 = new Vue({
-  el: '#app-7',
-  data: {
-    groceryList: [
-      { id: 0, text: 'Vegetables' },
-      { id: 1, text: 'Cheese' },
-      { id: 2, text: 'Whatever else humans are supposed to eat' }
-    ]
-  }
-})
+  },
+  filters: {
+    // This filter will be used to reduce the game rating to two decimals
+    ratingdecimal (value) {
+      return value.toFixed(2)
+    }
+  },
+  mounted () {
+    // This is the core of the code where we request data from our APIs
+	// For the time being this is a Python Flask server started from the command line
+    axios
+      .get('http://127.0.0.1:5000/api/v1/resources/games/all')
+      .then(response => {
+        this.games = response.data
+		// This is for debugging only to see the response on the Java script console
+		console.log(response)
+      })
+      .catch(error => {
+        console.log(error)
+        this.errored = true
+      })
+      .finally(() => this.loading = false)
+  }  
+});
 </script>
 
 
