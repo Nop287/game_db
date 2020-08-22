@@ -57,5 +57,23 @@ def api_id():
     # Use the jsonify function from Flask to convert our list of
     # Python dictionaries to the JSON format.
     return jsonify(results)
- 
+
+def search_by_rating(min_rating = 0, max_rating = 100):
+    my_query = Query()
+    test_func = lambda s: True if(isinstance(s, float) and s >= min_rating and s <= max_rating) else False
+    return game_db.search(my_query.game_rating.test(test_func))
+
+	
+# This will be an endpoint for querying by rating
+@app.route('/api/v1/resources/games/by_rating', methods=['GET'])
+def api_rating():
+	min_rating = 0
+	max_rating = 100
+	if 'min' in request.args:
+		min_rating = int(request.args['min'])
+	if 'max' in request.args:
+		max_rating = int(request.args['max'])
+	return jsonify(search_by_rating(min_rating, max_rating))
+
+	
 app.run()
