@@ -3,10 +3,18 @@
 <head>
   <title>Starting the Game Database</title>
   <script src="https://unpkg.com/vue"></script>
+<!-- Mindlessly copied this from the book Jump Start vue.js so I have not idea, what it does -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.3.3/dist/semantic.min.css">
   <style>
     h1.ui.center.header {
       margin-top: 3em;
+    }
+    .ui.table th:not(:first-child):hover {
+      cursor: pointer;
+    }
+
+    input {
+      padding: 3px;
     }
 	</style>
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
@@ -17,13 +25,18 @@
 
 <main id="gamedb">
 
+  <!-- This is the input component. We will need two for minimum and maximum rating. -->
+  <P>Enter minimum rating: <rating-input v-model="ratingMin" v-on:input="ratingMin = $event" type="number"></rating-input></p>	
+  <P>Enter maximum rating: <rating-input v-model="ratingMax" v-on:input="ratingMax = $event" type="number"></rating-input></p>	
+
   <div v-if="errored">
     <p>We're sorry, we're not able to retrieve this information at the moment, please try back later</p>
   </div>
   <div v-else>
     <div v-if="loading">Loading...</div>
     <div v-else>
-	<table>
+	<p>Display games with rating between {{ ratingMin }} and {{ ratingMax }}</p>
+	<table class="ui container">
 	<thead>
 	  <tr>
 	    <th>Name</th>
@@ -47,13 +60,31 @@
 </main>
 
 <script>
+
+/*
+This is the input component. To use it together with v-model the variable has to be named "value".
+This is explained very well here: https://vuejs.org/v2/guide/components.html#Using-v-model-on-Components
+It will emit an event called "input" with the value entered. 
+*/
+Vue.component('rating-input', {
+  props: ["value"],
+  template: `
+    <input
+      v-bind:value="value"
+      v-on:input="$emit('input', $event.target.value)"
+    >
+  `
+})
+
 new Vue({
   el: "#gamedb",
   data() {
     return {
       games: null,
       loading: true,
-      errored: false
+      errored: false,
+	  ratingMin: 0,
+	  ratingMax: 100
     }
   },
   filters: {
@@ -63,6 +94,8 @@ new Vue({
     }
   },
   mounted () {
+    console.log("minumum Rating: " + this.ratingMin)
+    console.log("maxumum Rating: " + this.ratingMax)
     // This is the core of the code where we request data from our APIs
 	// For the time being this is a Python Flask server started from the command line
     axios
