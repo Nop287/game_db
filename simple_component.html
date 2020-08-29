@@ -10,9 +10,9 @@
 <h1>Sharing Data Between Components</h1>
 
 <!-- 
-In this file we define two componets, one for input and one for output.
+In this file we define two components, one for input and one for output.
 We also have a vue.js app. The goal is to share one variabe between all 
-three elements. It has to be reative, so that we can change it using our
+three elements. It has to be reactive, so that we can change it using our
 input component.
 
 This will be extended for the output to deliver a result list from a REST
@@ -22,12 +22,19 @@ call dynamically given the input parameters.
 <div id="app">
   <!-- ratingApp is the variable to share. -->
   <!-- This just displays the variable, but is already reactive. -->
-  <p>This is the rating on the App level: {{ ratingApp }}</p>
+  <p>This is the minimal rating on the App level: {{ ratingMin }}</p>
+  <p>This is the maximal rating on the App level: {{ ratingMax }}</p>
   <!-- This component will be extended to display results of a REST call. -->
-  <!-- In v-bind we have to use kabab case as HTML attributes are case-insensitive. vue.js gives a warning. -->
-  <rating-output v-bind:rating-comp2="ratingApp"></rating-output>	
+  <!-- In v-bind we have to use kebab case as HTML attributes are case-insensitive. vue.js gives a warning. -->
+  <rating-output v-bind:rating-comp="ratingMin"></rating-output>	
+  <rating-output v-bind:rating-comp="ratingMax"></rating-output>	
   <!-- This is the input component. We will need two for minimum and maximum rating. -->
-  <rating-input v-model="ratingApp" v-on:input="ratingApp = $event" type="number"></rating-input>
+  <p>Enter minimal rating: 
+  <rating-min-input v-model="ratingMin" v-on:min-input="ratingMin = $event" type="number"></rating-min-input>
+  </p>
+  <p>Enter maximum rating: 
+  <rating-max-input v-model="ratingMax" v-on:max-input="ratingMax = $event" type="number"></rating-max-input>
+  </p>
 </div>
 
 <script>
@@ -37,12 +44,22 @@ This is the input component. To use it together with v-model the variable has to
 This is explained very well here: https://vuejs.org/v2/guide/components.html#Using-v-model-on-Components
 It will emit an event called "input" with the value entered. 
 */
-Vue.component('rating-input', {
+Vue.component('rating-min-input', {
   props: ["value"],
   template: `
     <input
       v-bind:value="value"
-      v-on:input="$emit('input', $event.target.value)"
+      v-on:input="$emit('min-input', $event.target.value)"
+    >
+  `
+})
+
+Vue.component('rating-max-input', {
+  props: ["value"],
+  template: `
+    <input
+      v-bind:value="value"
+      v-on:input="$emit('max-input', $event.target.value)"
     >
   `
 })
@@ -52,9 +69,9 @@ This is a very simple output component. Later it will be more elaborate.
 For now we just want to check the correct bindings.
 */
 Vue.component('rating-output', {
-  props: ["ratingComp2"],
+  props: ["ratingComp"],
   template: `
-    <p>Minimal Rating: {{ ratingComp2 }}</p>
+    <p>Minimal Rating: {{ ratingComp }}</p>
   `
 })
 
@@ -65,7 +82,8 @@ for everything to be reactive. The components will bind to this variable.
 var app = new Vue({
   el: '#app',
   data: {
-    ratingApp: 42
+    ratingMin: 10,
+    ratingMax: 90,
   }
 })
 
