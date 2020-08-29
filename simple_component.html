@@ -24,10 +24,6 @@ call dynamically given the input parameters.
   <!-- This just displays the variable, but is already reactive. -->
   <p>This is the minimal rating on the App level: {{ ratingMin }}</p>
   <p>This is the maximal rating on the App level: {{ ratingMax }}</p>
-  <!-- This component will be extended to display results of a REST call. -->
-  <!-- In v-bind we have to use kebab case as HTML attributes are case-insensitive. vue.js gives a warning. -->
-  <rating-output v-bind:rating-comp="ratingMin"></rating-output>	
-  <rating-output v-bind:rating-comp="ratingMax"></rating-output>	
   <!-- This is the input component. We will need two for minimum and maximum rating. -->
   <p>Enter minimal rating: 
   <rating-min-input v-model="ratingMin" v-on:min-input="ratingMin = $event" type="number"></rating-min-input>
@@ -35,9 +31,82 @@ call dynamically given the input parameters.
   <p>Enter maximum rating: 
   <rating-max-input v-model="ratingMax" v-on:max-input="ratingMax = $event" type="number"></rating-max-input>
   </p>
+  <!-- This component will be extended to display results of a REST call. -->
+  <!-- In v-bind we have to use kebab case as HTML attributes are case-insensitive. vue.js gives a warning. -->
+  <rating-output v-bind:rating-from="ratingMin" v-bind:rating-to="ratingMax"></rating-output>
+  <!-- Testing the async component -->
+  <async url="http://127.0.0.1:5000/api/v1/resources/games/by_rating" v-bind:from-rating="ratingMin" v-bind:to-rating="ratingMax">
+  <template v-slot:default="{ pending, error, data }">
+    <div v-if="pending">Loading ...</div>
+    <div v-else-if="error">{{ error }}</div>
+    <div v-else>{{ data }}</div>
+  </template>
+  </async>
 </div>
 
 <script>
+/* 
+The async component was taken from this website:
+https://tentmaker.dev/writing/vuejs-async-renderless-component/
+*/
+
+Vue.component('async', {
+  props: {
+    url: { type: String, default: 'http://127.0.0.1:5000/api/v1/resources/games/by_rating', required: true },
+    fromRating: { type: Number, default: 0 },
+    toRating: { type: Number, default: 100 }
+  },
+  data() {
+    return {
+      pending: true,
+      error: false,
+      data: null,
+    }
+  },
+  watch: {
+    url() {
+      this.requestData()
+    },
+    fromRating() {
+      this.requestData()
+    },
+    toRating() {
+      this.requestData()
+    },
+    params: {
+      handler() {
+        this.requestData()
+      },
+      deep: true,
+    },
+  },
+  mounted() {
+    this.requestData()
+  },
+  methods: {
+    async requestData() {
+      this.pending = true
+      try {
+        this.params = { min: this.fromRating, max: this.toRating }
+        const { data } = await axios.get(this.url, { params: this.params })
+        this.data = data
+        this.error = false
+      } catch (e) {
+        this.data = null
+        this.error = e
+      }
+      this.pending = false
+    },
+  },
+  render() {
+    return this.$scopedSlots.default({
+      pending: this.pending,
+      error: this.error,
+      data: this.data,
+    })
+  },
+})
+
 
 /*
 This is the input component. To use it together with v-model the variable has to be named "value".
@@ -69,9 +138,9 @@ This is a very simple output component. Later it will be more elaborate.
 For now we just want to check the correct bindings.
 */
 Vue.component('rating-output', {
-  props: ["ratingComp"],
+  props: ["ratingFrom", "ratingTo"],
   template: `
-    <p>Minimal Rating: {{ ratingComp }}</p>
+    <p>Searching for games with a rating from {{ ratingFrom }} to {{ ratingTo }}.</p>
   `
 })
 
