@@ -14,8 +14,30 @@
 
 <body>
   <div id="app">
+  <p>Minimum Rating is {{ minrating }}</p>
+  <p>Maximum Rating is {{ maxrating }}</p>
         <!-- Buefy components goes here -->
     <template>
+    <section>
+            <b-field label="Min Rating">
+            <b-input v-model="minrating"
+                type="search"
+                icon="magnify"
+                icon-clickable
+                @icon-click="searchIconClick">
+             ></b-input>
+        </b-field>
+	</section>
+    <section>
+            <b-field label="Max Rating">
+            <b-input v-model="maxrating"
+                type="search"
+                icon="magnify"
+                icon-clickable
+                @icon-click="searchIconClick">
+             ></b-input>
+        </b-field>
+	</section>
     <section>
       <b-table :data="isEmpty ? [] : data" 
                   :default-sort-direction="defaultSortDirection"
@@ -24,30 +46,19 @@
                        default-sort="first_name"
 >
             <b-table-column field="id" label="ID" width="40" sortable numeric v-slot="props">
-                {{ props.row.id }}
+                {{ props.row.game_igdb_id }}
             </b-table-column>
 
-            <b-table-column field="first_name" label="First Name" sortable v-slot="props">
-                {{ props.row.first_name }}
+            <b-table-column field="game_igdb_name" label="Game" sortable v-slot="props">
+                {{ props.row.game_igdb_name }}
             </b-table-column>
 
-            <b-table-column field="last_name" label="Last Name" sortable v-slot="props">
-                {{ props.row.last_name }}
+            <b-table-column field="game_rating" label="Rating" sortable v-slot="props">
+                {{ props.row.game_rating | ratingdecimal }}
             </b-table-column>
 
-            <b-table-column field="date" label="Date" sortable centered v-slot="props">
-                <span class="tag is-success">
-                    {{ new Date(props.row.date).toLocaleDateString() }}
-                </span>
-            </b-table-column>
-
-            <b-table-column label="Gender" v-slot="props">
-                <span>
-                    <b-icon pack="fas"
-                        :icon="props.row.gender === 'Male' ? 'mars' : 'venus'">
-                    </b-icon>
-                    {{ props.row.gender }}
-                </span>
+            <b-table-column field="game_rating_count" label="Rating Count" sortable v-slot="props">
+                {{ props.row.game_rating_count }}
             </b-table-column>
 
       </b-table>
@@ -60,15 +71,14 @@
 const example = {
     data() {
         const data = [
-            { 'id': 1, 'first_name': 'Jesse', 'last_name': 'Simmons', 'date': '2016/10/15 13:43:27', 'gender': 'Male' },
-            { 'id': 2, 'first_name': 'John', 'last_name': 'Jacobs', 'date': '2016/12/15 06:00:53', 'gender': 'Male' },
-            { 'id': 3, 'first_name': 'Tina', 'last_name': 'Gilbert', 'date': '2016/04/26 06:26:28', 'gender': 'Female' },
-            { 'id': 4, 'first_name': 'Clarence', 'last_name': 'Flores', 'date': '2016/04/10 10:28:46', 'gender': 'Male' },
-            { 'id': 5, 'first_name': 'Anne', 'last_name': 'Lee', 'date': '2016/12/06 14:38:38', 'gender': 'Female' }
-        ]
+         ]
+    	const minrating = 80
+    	const maxrating = 90
 
         return {
             data,
+            minrating,
+            maxrating,
             isEmpty: false,
             isBordered: false,
             isStriped: false,
@@ -80,7 +90,43 @@ const example = {
             sortIcon: "arrow-up",
             sortIconSize: "is-small",
        }
+    },
+        methods: {
+            searchIconClick() {
+    axios
+      .get('http://127.0.0.1:5000/api/v1/resources/games/by_rating', { params: { min: this.minrating, max: this.maxrating } })
+      .then(response => {
+        this.data = response.data
+		// This is for debugging only to see the response on the Java script console
+		console.log(response)
+      })
+      .catch(error => {
+        console.log(error)
+        this.errored = true
+      })
+      .finally(() => this.loading = false)
+            },
+        },
+  filters: {
+    // This filter will be used to reduce the game rating to two decimals
+    ratingdecimal (value) {
+      return value.toFixed(2)
     }
+  },
+  mounted () {
+    axios
+      .get('http://127.0.0.1:5000/api/v1/resources/games/by_rating', { params: { min: this.minrating, max: this.maxrating } })
+      .then(response => {
+        this.data = response.data
+		// This is for debugging only to see the response on the Java script console
+		console.log(response)
+      })
+      .catch(error => {
+        console.log(error)
+        this.errored = true
+      })
+      .finally(() => this.loading = false)
+  }
 }
 
             const app = new Vue(example)
