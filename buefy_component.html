@@ -15,10 +15,6 @@
 
 <body>
   <div id="app">
-    <section>
-      <p>Minimum Rating is {{ minrating }}</p>
-      <p>Maximum Rating is {{ maxrating }}</p>
-    </section>
     <!-- Buefy components goes here -->
     <section class="hero is-medium is-primary is-bold">
       <div class="hero-body">
@@ -28,23 +24,25 @@
         </div>
       </div>
     </section>
-    <section class="section">
-      <div class="container">
-        <div class="field is-horizontal">
+    <section class="buttons is-centered">
           <b-field label="Min Rating">
             <b-numberinput v-model="minrating" :min="0" :max="100"></b-numberinput>
           </b-field>
           <b-field label="Max Rating">
             <b-numberinput v-model="maxrating" :min="0" :max="100"></b-numberinput>
           </b-field>
-          <b-button @click="searchIconClick">Search</b-button>
-        </div>
-      </div>
+          <b-field label="Min Rating Count">
+            <b-numberinput v-model="mincount"></b-numberinput>
+          </b-field>
+          <b-field label="Max Playtime">
+            <b-numberinput v-model="maxplaytime"></b-numberinput>
+          </b-field>
+          <b-button type="is-primary is-large" @click="searchIconClick">Search</b-button>
     </section>
-    <section class="level">
+    <section class="columns is-centered">
       <b-table :data="isEmpty ? [] : data" :default-sort-direction="defaultSortDirection" :sort-icon="sortIcon"
-        :sort-icon-size="sortIconSize" default-sort="first_name">
-        <b-table-column field="id" label="ID" width="40" sortable numeric v-slot="props">
+        :sort-icon-size="sortIconSize" default-sort="game_rating">
+        <b-table-column field="id" label="ID" width="40" sortable v-slot="props">
           {{ props.row.game_igdb_id }}
         </b-table-column>
 
@@ -61,17 +59,17 @@
         </b-table-column>
 
       </b-table>
-      </section>
-      <footer class="footer">
-        <div class="content has-text-centered">
-          <p>
-            <strong>The Game DB Prototype</strong> implemented by Nop287.
-          </p>
-        </div>
-      </footer>
-    
+    </section>
+    <footer class="footer">
+      <div class="content has-text-centered">
+        <p>
+          <strong>The Game DB Prototype</strong> implemented by Nop287.
+        </p>
+      </div>
+    </footer>
+
   </div>
- 
+
 
   <script>
     const example = {
@@ -80,11 +78,15 @@
         ]
         const minrating = 80
         const maxrating = 90
+        const mincount = 10
+        const maxplaytime = 30
 
         return {
           data,
           minrating,
           maxrating,
+          mincount,
+          maxplaytime,
           isEmpty: false,
           isBordered: false,
           isStriped: false,
