@@ -29,12 +29,16 @@ def home():
 <p>A prototype API for querying my collection of computer games.</p>'''
 
 # We us this for testing for now to get a end to end prototype
+
+
 @app.route('/api/v1/resources/games/all', methods=['GET'])
 def api_all():
     return jsonify(games)
 
 # This can be used to retrieve one game.
 # For now we use the web-scraper-order as an ID. This has to be fixed, not all games have one.
+
+
 @app.route('/api/v1/resources/games', methods=['GET'])
 def api_id():
     # Check if an ID was provided as part of the URL.
@@ -58,22 +62,45 @@ def api_id():
     # Python dictionaries to the JSON format.
     return jsonify(results)
 
-def search_by_rating(min_rating = 0, max_rating = 100):
+# This was is the first version of the search function.
+
+
+def search_by_rating(min_rating=0, max_rating=100):
     my_query = Query()
-    test_func = lambda s: True if(isinstance(s, float) and s >= min_rating and s <= max_rating) else False
+    def test_func(s): return True if(isinstance(
+        s, float) and s >= min_rating and s <= max_rating) else False
     return game_db.search(my_query.game_rating.test(test_func))
 
-	
+# As I added parameters to search by in the frontend I extended the search function.
+
+
+def search_api(min_rating=0, max_rating=100, min_rating_count=0, max_playing_time=1000):
+    my_query = Query()
+
+    def test_rating(s): return True if(isinstance(
+        s, float) and s >= min_rating and s <= max_rating) else False
+    def test_time(s): return True if(isinstance(
+        s, float) and s <= max_playing_time) else False
+    return game_db.search((my_query.game_rating.test(test_rating)) & (my_query.game_rating_count >= min_rating_count) &
+                          (my_query.hltb_main.test(test_time)))
+
+
 # This will be an endpoint for querying by rating
 @app.route('/api/v1/resources/games/by_rating', methods=['GET'])
 def api_rating():
-	min_rating = 0
-	max_rating = 100
-	if 'min' in request.args:
-		min_rating = int(request.args['min'])
-	if 'max' in request.args:
-		max_rating = int(request.args['max'])
-	return jsonify(search_by_rating(min_rating, max_rating))
+    min_rating = 0
+    max_rating = 100
+    min_rating_count = 0
+    max_playing_time = 1000
+    if 'min' in request.args:
+        min_rating = int(request.args['min'])
+    if 'max' in request.args:
+        max_rating = int(request.args['max'])
+    if 'mincount' in request.args:
+        min_rating_count = int(request.args['mincount'])
+    if 'maxtime' in request.args:
+        max_playing_time = int(request.args['maxtime'])
+        return jsonify(search_api(min_rating, max_rating, min_rating_count, max_playing_time))
 
-	
+
 app.run()

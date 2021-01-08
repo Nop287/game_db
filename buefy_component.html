@@ -102,7 +102,7 @@
       methods: {
         searchIconClick() {
           axios
-            .get('http://127.0.0.1:5000/api/v1/resources/games/by_rating', { params: { min: this.minrating, max: this.maxrating } })
+            .get('http://127.0.0.1:5000/api/v1/resources/games/by_rating', { params: { min: this.minrating, max: this.maxrating, mincount: this.mincount, maxtime: this.maxplaytime } })
             .then(response => {
               this.data = response.data
               // This is for debugging only to see the response on the Java script console
